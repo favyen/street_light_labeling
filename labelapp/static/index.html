@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	</head>
+	<body oncontextmenu="return false;">
+		<div id="imageDiv"></div>
+		<div>
+			<button id="prevBtn">Prev</button>
+			<button id="nextBtn">Next</button>
+		</div>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script>
+			function loadImage() {
+				var img1 = $('<img>').attr('class', 'myimg')
+				                     .attr('src', '/get1?v=' + new Date().getTime())
+				                     .attr('width', 512)
+				                     .attr('height', 512);
+				var img2 = $('<img>').attr('src', '/get2?v=' + new Date().getTime())
+				                     .attr('width', 512)
+				                     .attr('height', 512);
+				$('#imageDiv').children().remove();
+				$('#imageDiv').append(img1);
+				$('#imageDiv').append(img2);
+			}
+
+			$('#imageDiv').mousedown(function(e) {
+				var x = e.pageX - $('.myimg').offset().left;
+				var y = e.pageY - $('.myimg').offset().top;
+				if(x < 0 || x > 512 || y < 0 || y > 512) {
+					console.log('ignoring out of bounds click @ (' + x + ', ' + y + ')');
+					return;
+				}
+				$.post('/submit', {
+					'x': parseInt(x/2),
+					'y': parseInt(y/2),
+				}, function() {
+					loadImage();
+				});
+			});
+
+			$('#prevBtn').click(function() {
+				$.post('/prev', {}, function() {
+					loadImage();
+				});
+			});
+
+			$('#nextBtn').click(function() {
+				$.post('/next', {}, function() {
+					loadImage();
+				});
+			});
+
+			loadImage();
+		</script>
+	</body>
+</html>
