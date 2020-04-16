@@ -63,8 +63,26 @@ func populateDatabase() {
 }
 
 func main() {
-	if len(os.Args) >= 2 && os.Args[1] == "populate" {
-		populateDatabase()
+	if len(os.Args) >= 2 {
+		if os.Args[1] == "populate" {
+			populateDatabase()
+		} else if os.Args[1] == "dump" {
+			points := make(map[string][][2]int)
+			rows := db.Query("SELECT fname, x, y FROM label_points")
+			for rows.Next() {
+				var fname string
+				var x, y int
+				rows.Scan(&fname, &x, &y)
+				points[fname] = append(points[fname], [2]int{x, y})
+			}
+			bytes, err := json.Marshal(points)
+			if err != nil {
+				panic(err)
+			}
+			if err := ioutil.WriteFile(os.Args[2], bytes, 0644); err != nil {
+				panic(err)
+			}
+		}
 		return
 	}
 
@@ -81,7 +99,7 @@ func main() {
 	log.Printf("loaded %d filenames", len(fnames))
 
 	var maxIdx *int
-	db.QueryRow("SELECT MAX(f.id) FROM files AS f, label_points AS p WHERE f.fname = p.fname").Scan(&maxIdx)
+	db.QueryRow("SELECT IFNULL(MAX(f.id), 0) FROM files AS f, label_points AS p WHERE f.fname = p.fname").Scan(&maxIdx)
 	if maxIdx != nil {
 		curIdx = *maxIdx
 	}
