@@ -1,0 +1,7 @@
+To label the training_v1 data:
+
+(1) Create symlink `ln -s /path/to/training_v1 street_light_labeling/shahin/labelapp/training_v1`
+(2) Launch server `cd street_light_labeling/shahin/labelapp/ && go run .`
+(3) Go to http://localhost:8080 and label street lights by clicking on the left image
+(3b) Before you label, you can see how the previous labels are done by clicking Prev button a few times
+(4) After add some labels, commit `git commit app.sqlite3`
