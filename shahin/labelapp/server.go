@@ -14,8 +14,8 @@ import (
 	"sync"
 )
 
-const ImageDir = "/mnt/signify/la/shahin-dataset/training_v1/"
-const JsonDir = "/mnt/signify/la/shahin-dataset/training_v1.json"
+const ImageDir = "training_v1/"
+const JsonPath = "training_v1.json"
 
 func jsonResponse(w http.ResponseWriter, x interface{}) {
 	bytes, err := json.Marshal(x)
@@ -29,7 +29,7 @@ func jsonResponse(w http.ResponseWriter, x interface{}) {
 func populateDatabase() {
 	log.Printf("read points")
 	var points map[string][][2]int
-	bytes, err := ioutil.ReadFile(JsonDir)
+	bytes, err := ioutil.ReadFile(JsonPath)
 	if err != nil {
 		panic(err)
 	}
@@ -98,10 +98,11 @@ func main() {
 	}
 	log.Printf("loaded %d filenames", len(fnames))
 
-	var maxIdx *int
-	db.QueryRow("SELECT IFNULL(MAX(f.id), 0) FROM files AS f, label_points AS p WHERE f.fname = p.fname").Scan(&maxIdx)
-	if maxIdx != nil {
-		curIdx = *maxIdx
+	var maxID *int
+	db.QueryRow("SELECT IFNULL(MAX(f.id), 0) FROM files AS f, label_points AS p WHERE f.fname = p.fname").Scan(&maxID)
+	if maxID != nil {
+		db.QueryRow("SELECT COUNT(*) FROM files WHERE id <= ?", *maxID).Scan(&curIdx)
+		log.Printf("initialize curidx = %d", curIdx)
 	}
 
 	fileServer := http.FileServer(http.Dir("static/"))
